@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailBlock AI | Smart Block Planning & Operational Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ==========================================================================
+           1. CORE VARIABLES & BASE STYLES
+           ========================================================================== */
+        :root {
+            --bg-primary: #0b192c;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card-border: rgba(255, 255, 255, 0.1);
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.5);
+            --alert-gold: #f59e0b;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size-base: 16px;
+        }
+
+        /* High Contrast Theme Variables */
+        .high-contrast {
+            --bg-primary: #000000 !important;
+            --bg-card: #111111 !important;
+            --bg-card-border: #ffff00 !important;
+            --accent-blue: #ffff00 !important;
+            --text-main: #ffffff !important;
+            --text-muted: #ffff00 !important;
+            --alert-gold: #ffff00 !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 4px; }
+
+        /* ==========================================================================
+           2. HEADER & ACCESSIBILITY TOP BAR
+           ========================================================================== */
+        .top-bar {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 8px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--bg-card-border);
+            font-size: 0.85rem;
+        }
+
+        .top-bar-left, .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .accessibility-btn, .lang-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--bg-card-border);
+            color: var(--text-main);
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .accessibility-btn:hover { background: var(--accent-blue); }
+
+        .voice-mic {
+            color: var(--danger-red);
+            animation: pulse-mic 1.5s infinite;
+            cursor: pointer;
+        }
+
+        @keyframes pulse-mic {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--bg-card-border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .logo i { color: var(--accent-blue); }
+
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { font-weight: 500; font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--accent-blue); }
+
+        /* ==========================================================================
+           3. HERO & AI INTEGRATION SECTION (PS 26027 CORNERSTONE)
+           ========================================================================== */
+        .hero {
+            padding: 40px 5%;
+            background: linear-gradient(135deg, rgba(11, 25, 44, 0.95), rgba(30, 41, 59, 0.8)), 
+                        url('https://images.unsplash.com/photo-1515165562839-978bbcf18277?q=80&w=1200') center/cover;
+            border-bottom: 1px solid var(--bg-card-border);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .hero-title h1 { font-size: 2.3rem; margin-bottom: 10px; line-height: 1.2; }
+        .hero-title p { color: var(--text-muted); margin-bottom: 20px; }
+
+        /* Data Sync Integration Cards */
+        .integration-badges {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--bg-card-border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success-green); }
+
+        /* Dynamic Search / AI Optimizer Widget */
+        .search-widget {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--bg-card-border);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted); }
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 6px;
+            color: var(--text-main);
+            outline: none;
+        }
+        .form-control:focus { border-color: var(--accent-blue); }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--accent-blue-glow);
+        }
+        .btn-primary:hover { transform: translateY(-2px); transition: all 0.2s ease; }
+
+        /* ==========================================================================
+           4. MAIN DASHBOARD & TABBED MODULES
+           ========================================================================== */
+        .dashboard { padding: 40px 5%; }
+
+        .tabs {
+            display: flex;
+            gap: 15px;
+            border-bottom: 1px solid var(--bg-card-border);
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Timeline View (Tab 1) */
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 40px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 60%;
+            height: 4px;
+            background: var(--success-green);
+            z-index: 1;
+        }
+
+        .node {
+            background: var(--bg-primary);
+            border: 2px solid var(--text-muted);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .node.completed { border-color: var(--success-green); background: var(--success-green); }
+        .node.active { border-color: var(--accent-blue); background: var(--bg-primary); animation: pulse 1.5s infinite; }
+        
+        .node-label {
+            position: absolute;
+            top: 45px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Crowd Density Heatmap (Tab 3) */
+        .density-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .coach-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+            height: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill { height: 100%; border-radius: 5px; }
+        .fill-low { width: 30%; background: var(--success-green); }
+        .fill-mod { width: 65%; background: var(--alert-gold); }
+        .fill-high { 
+            width: 90%; 
+            background: var(--danger-red); 
+            animation: pulse-bg 1s infinite alternate; 
+        }
+
+        @keyframes pulse-bg {
+            from { opacity: 0.7; }
+            to { opacity: 1; box-shadow: 0 0 10px var(--danger-red); }
+        }
+
+        /* ==========================================================================
+           5. 3D COACH VISUALIZER / SEAT MAP (PURE CSS GRID)
+           ========================================================================== */
+        .seat-visualizer {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .seat-legend {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .box { width: 15px; height: 15px; border-radius: 3px; }
+
+        .compartment {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .seat {
+            background: var(--success-green);
+            height: 45px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .seat.booked { background: var(--danger-red); }
+        .seat.rac { background: var(--alert-gold); }
+        .seat.women { background: #ec4899; }
+
+        /* Pure CSS Tooltip Pop-up */
+        .seat:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 55px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        /* ==========================================================================
+           6. FLOATING EMERGENCY SOS WIDGET (RAILMADAD 2.0)
+           ========================================================================== */
+        .sos-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            cursor: pointer;
+            z-index: 1000;
+            animation: fab-pulse 2s infinite;
+        }
+
+        @keyframes fab-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Glassmorphism Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Responsive Layout Adjustments */
+        @media (max-width: 768px) {
+            .hero-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .timeline { flex-direction: column; gap: 20px; align-items: flex-start; }
+            .timeline::before { width: 4px; height: 100%; left: 16px; top: 0; }
+            .timeline-progress { width: 4px; height: 50%; left: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span><i class="fa-solid fa-clock"></i> Live System Time: <strong id="clock">--:--:--</strong></span>
+            <span class="badge"><div class="badge-dot"></div> AI Engine Active</span>
+        </div>
+        <div class="top-bar-right">
+            <i class="fa-solid fa-microphone voice-mic" title="Voice Assist Active"></i>
+            <button class="accessibility-btn" onclick="changeFontSize(1)">A+</button>
+            <button class="accessibility-btn" onclick="changeFontSize(-1)">A-</button>
+            <button class="accessibility-btn" onclick="toggleHighContrast()">High Contrast</button>
+            <select class="lang-select">
+                <option>English</option>
+                <option>हिंदी (Hindi)</option>
+            </select>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-train-subway"></i>
+            <span>RailBlock <span style="color:var(--accent-blue);">AI</span></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#dashboard">Block Schedule</a></li>
+            <li><a href="#crowd">Live Density</a></li>
+            <li><a href="#seats">Seat View</a></li>
+            <li><a href="#analytics">TMS/SMMS Integration</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-grid">
+            <div class="hero-title">
+                <h1>AI-Powered Automatic Maintenance Block Planning</h1>
+                <p>Maximizing Fixed Asset Uptime & Operational Capacity for Indian Railways via Integrated TMS, SMMS & TDMS Analytics.</p>
+                <div class="integration-badges">
+                    <div class="badge"><i class="fa-solid fa-database"></i> TMS Sync</div>
+                    <div class="badge"><i class="fa-solid fa-signal"></i> SMMS Sync</div>
+                    <div class="badge"><i class="fa-solid fa-bolt"></i> TDMS Sync</div>
+                </div>
+            </div>
+
+            <div class="search-widget">
+                <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Corridor Schedule Finder</h3>
+                <div class="form-group">
+                    <label>Railway Division / Section</label>
+                    <input type="text" class="form-control" value="Northern Railway - NDLS Division" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Planning Horizon</label>
+                    <select class="form-control">
+                        <option>Weekly Block Schedule (Short-term)</option>
+                        <option>Monthly Corridor Maintenance (Long-term)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="alert('Generating Optimized Block Matrix...')">Generate Optimized Block Plan</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard" id="dashboard">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab1')">Live Train Corridor Track</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab2')">AI Block Schedule Matrix</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab3')">Unreserved Coach Crowd Heatmap</button>
+        </div>
+
+        <div id="tab1" class="tab-content active">
+            <h2>Real-time Train Corridor Tracking</h2>
+            <div class="timeline">
+                <div class="timeline-progress"></div>
+                <div class="node completed"><i class="fa-solid fa-check" style="font-size: 0.7rem; color:white;"></i>
+                    <div class="node-label">New Delhi<br><small>10:00 AM</small></div>
+                </div>
+                <div class="node completed"><i class="fa-solid fa-check" style="font-size: 0.7rem; color:white;"></i>
+                    <div class="node-label">Ghaziabad<br><small>10:45 AM</small></div>
+                </div>
+                <div class="node active"><i class="fa-solid fa-train" style="font-size: 0.8rem; color:var(--accent-blue);"></i>
+                    <div class="node-label" style="color:var(--accent-blue); font-weight:bold;">Aligarh Jn (Current)<br><small>12:15 PM</small></div>
+                </div>
+                <div class="node">
+                    <div class="node-label">Tundla Jn<br><small>01:30 PM</small></div>
+                </div>
+                <div class="node">
+                    <div class="node-label">Kanpur Central<br><small>04:00 PM</small></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab2" class="tab-content">
+            <h2>Multi-Department Maintenance Integration</h2>
+            <p style="color: var(--text-muted); margin-bottom: 15px;">Combined schedules for Track (Engineering), Signal (S&T), and Overhead Lines (TRD).</p>
+            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
+                <p>🟢 <strong>Slot Allocated:</strong> Tundla - Kanpur Down Line | 14:00 - 16:00 Hrs</p>
+                <p style="margin-top: 5px;">⚡ <strong>Coordinated Task:</strong> TMS Rail Grinding + TDMS OHE Cable Inspection (Zero Extra Delay)</p>
+            </div>
+        </div>
+
+        <div id="tab3" class="tab-content">
+            <h2>Live Coach Density (General / Unreserved)</h2>
+            <div class="density-grid" id="crowd" style="margin-top:15px;">
+                <div class="coach-card">
+                    <h4>Coach GS 1</h4>
+                    <div class="progress-bar-bg"><div class="progress-fill fill-low"></div></div>
+                    <small>30% Occupied (Low Density)</small>
+                </div>
+                <div class="coach-card">
+                    <h4>Coach GS 2</h4>
+                    <div class="progress-bar-bg"><div class="progress-fill fill-mod"></div></div>
+                    <small>68% Occupied (Moderate)</small>
+                </div>
+                <div class="coach-card">
+                    <h4>Coach GS 3</h4>
+                    <div class="progress-bar-bg"><div class="progress-fill fill-high"></div></div>
+                    <small style="color: var(--danger-red); font-weight: bold;">92% Occupied (Heavy Rush)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="seat-visualizer" id="seats">
+            <h3>Interactive Coach Layout Visualizer</h3>
+            <div class="seat-legend">
+                <div class="legend-item"><div class="box" style="background:var(--success-green);"></div> Available</div>
+                <div class="legend-item"><div class="box" style="background:var(--danger-red);"></div> Booked</div>
+                <div class="legend-item"><div class="box" style="background:var(--alert-gold);"></div> RAC</div>
+                <div class="legend-item"><div class="box" style="background:#ec4899;"></div> Ladies</div>
+            </div>
+            
+            <div class="compartment">
+                <div class="seat" data-tooltip="1 - Lower Berth (LB)">1 LB</div>
+                <div class="seat booked" data-tooltip="2 - Middle Berth (Booked)">2 MB</div>
+                <div class="seat" data-tooltip="3 - Upper Berth (UB)">3 UB</div>
+                <div class="seat rac" data-tooltip="4 - Side Lower (RAC)">4 SL</div>
+                <div class="seat" data-tooltip="5 - Side Upper (SU)">5 SU</div>
+                <div class="seat women" data-tooltip="6 - Lower (Ladies Reserved)">6 LB</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sos-fab" onclick="toggleModal(true)">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+
+    <div class="modal" id="sosModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleModal(false)">&times;</span>
+            <h3 style="color:var(--danger-red);"><i class="fa-solid fa-shield-halved"></i> Emergency Assistance</h3>
+            <p style="font-size:0.85rem; margin:10px 0; color:var(--text-muted);">Auto-detecting nearest Railway Control Room...</p>
+            <div class="form-group">
+                <label>PNR / Coach Number</label>
+                <input type="text" class="form-control" placeholder="e.g. B4 - 42">
+            </div>
+            <button class="btn-primary" style="background:var(--danger-red);" onclick="alert('Emergency Alert Sent to RPF & Station Master!')">Dispatch Immediate Help</button>
+        </div>
+    </div>
+
+    <script>
+        // Live Clock Implementation
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+        }, 1000);
+
+        // Tab Switching Logic
+        function switchTab(evt, tabId) {
+            let contents = document.querySelectorAll('.tab-content');
+            let buttons = document.querySelectorAll('.tab-btn');
+            contents.forEach(c => c.classList.remove('active'));
+            buttons.forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Font Size Accessibility Controls
+        let currentFontSize = 16;
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            document.body.style.fontSize = currentFontSize + 'px';
+        }
+
+        // High Contrast Theme Toggle
+        function toggleHighContrast() {
+            document.body.classList.toggle('high-contrast');
+        }
+
+        // Emergency Modal Trigger
+        function toggleModal(show) {
+            document.getElementById('sosModal').style.display = show ? 'flex' : 'none';
+        }
+    </script>
+</body>
+</html>
